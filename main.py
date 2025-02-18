@@ -1,7 +1,10 @@
-import discord, os, dotenv
+import discord
 from discord.ext import commands
 
-dotenv.load_dotenv()
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # SERVER ID
 GUILD_ID = discord.Object(id=1337086900409864224)
@@ -20,13 +23,14 @@ class Client(commands.Bot):
                     print(f"Failed to load extension {extension}: {e}")
 
     async def on_ready(self):
+        print(f"Logged on as {self.user}")
+
         # Sync the command tree for the specific guild so that the slash commands are registered immediately.
         try:
             synced = await self.tree.sync(guild=GUILD_ID)
             print(f"Synced {len(synced)} command(s) for guild {GUILD_ID.id}")
         except Exception as e:
             print(f"Error syncing commands: (e)")
-        print(f"Logged on as {self.user}")
 
 
 intents = discord.Intents.default()
