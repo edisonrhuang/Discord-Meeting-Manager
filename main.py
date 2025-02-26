@@ -1,17 +1,21 @@
 import discord, os, dotenv, aiosqlite
 from discord.ext import commands
 
-dotenv.load_dotenv()
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # SERVER ID
 GUILD_ID = discord.Object(id=1337086900409864224)
+
 
 class Client(commands.Bot):
     async def setup_hook(self):
         # Dynamically load all Cog files from the cogs folder.
         for filename in os.listdir("./cogs"):
             if filename.endswith(".py"):
-                extension = f"cogs.{filename[:-3]}" # -3 to remove .py
+                extension = f"cogs.{filename[:-3]}"  # -3 to remove .py
                 try:
                     await self.load_extension(extension)
                     print(f"Loaded extension: {extension}")

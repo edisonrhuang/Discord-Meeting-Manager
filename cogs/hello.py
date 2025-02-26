@@ -7,6 +7,7 @@ from discord.ext import commands
 # SERVER ID
 GUILD_ID = discord.Object(id=1337086900409864224)
 
+
 # Create a Cog for the hello command
 class Hello(commands.Cog):
     # Initialize the Cog with the bot instance
@@ -15,12 +16,13 @@ class Hello(commands.Cog):
 
     # Define the hello command as a slash command
     @app_commands.command(name="hello", description="Say hello!")
-    @app_commands.guilds(GUILD_ID) # Register command to the server
-    
+    @app_commands.guilds(GUILD_ID)  # Register command to the server
+
     # Define the command function
     async def hello(self, interaction: discord.Interaction):
         # Respond to the slash command with a mention.
         await interaction.response.send_message(f"Hello {interaction.user.mention}!")
+
 
 # Setup function to add the Cog to the bot
 async def setup(bot):
