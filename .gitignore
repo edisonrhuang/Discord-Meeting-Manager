@@ -1,5 +1,5 @@
 .env
-database.db
 __pycache__/
 cogs/__pycache__/
 node_modules/
+database.db
