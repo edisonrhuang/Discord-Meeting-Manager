@@ -161,8 +161,14 @@ class MeetingCog(commands.Cog):
 
         # 5. Create restricted text and voice channels (only visible to members with the meeting role).
         sanitized_meeting_title = title.lower().replace(" ", "-")
+        bot_role = discord.utils.get(guild.roles, name="Bot")
+        if bot_role is None:
+            return await interaction.response.send_message(
+                "Bot role not found in the server.", ephemeral=True
+            )
         overwrites = {
             guild.default_role: discord.PermissionOverwrite(view_channel=False),
+            bot_role: discord.PermissionOverwrite(view_channel=True, move_members=True),
             meeting_role: discord.PermissionOverwrite(
                 view_channel=True, send_messages=True, connect=True
             ),
