@@ -92,7 +92,7 @@ class MeetingCog(commands.Cog):
         meeting_voice_channel = await guild.create_voice_channel(name=f"{title.lower().replace(' ', '-')}-voice", category=meetings_category, overwrites=overwrites)
 
         async with aiosqlite.connect(DATABASE_PATH) as db:
-            await db.execute("UPDATE meetings SET voice_channel_id = ? WHERE id = ?", (meeting_voice_channel.id, meeting_db_id))
+            await db.execute("UPDATE meetings SET voice_channel_id = ?, role_id = ? WHERE id = ?", (meeting_voice_channel.id, meeting_role.id, meeting_db_id))
             await db.commit()
 
         embed = discord.Embed(title=f"Meeting {title} Created!", description=f"\nMeeting ID: {meeting_db_id}\n{description}", color=discord.Color.blue())

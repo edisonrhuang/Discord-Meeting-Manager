@@ -37,6 +37,7 @@ class Client(commands.Bot):
                 status TEXT CHECK(status IN ('scheduled', 'cancelled', 'completed')) DEFAULT 'scheduled',
                 voice_channel_id INTEGER,
                 thread_id INTEGER,
+                role_id INTEGER,
                 recurring_interval TEXT CHECK(recurring_interval IN ('none', 'daily', 'weekly', 'monthly')) DEFAULT 'none',
                 recurring_end_date INTEGER --Unix timestamp (seconds)
             );
