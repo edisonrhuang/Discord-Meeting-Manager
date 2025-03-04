@@ -51,3 +51,5 @@ Creates a new meeting with the specified title, description, date, and time.
 ### `/cancel_meeting [title]`
 
 Cancels the titled meeting, removing the generated text and voice channels, and messages the forum post that the meeting has been cancelled.
+
+- **[title]**: The title of the meeting.
