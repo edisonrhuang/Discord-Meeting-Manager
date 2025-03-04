@@ -15,8 +15,8 @@ TIME_FORMATS = [
 
 DATE_FORMATS = [
     r"^(0?[1-9]|1[0-2])/(0?[1-9]|[12][0-9]|3[01])/(\d{4})$",  # MM/DD/YYYY or M/D/YYYY
+    r"^(0?[1-9]|1[0-2])/(0?[1-9]|[12][0-9]|3[01])/(\d{2})$"  # MM/DD/YY or M/D/YY
 ]
-
 
 def parse_time(input_time: str) -> str:
     """Parses various time formats and returns a 24-hour format string (HH:MM)."""
@@ -37,16 +37,19 @@ def parse_time(input_time: str) -> str:
 
     raise ValueError(f"Invalid time format: {input_time}")
 
-
 def parse_date(input_date: str) -> str:
     """Parses various date formats and returns MM/DD/YYYY format."""
     for pattern in DATE_FORMATS:
         match = re.match(pattern, input_date)
         if match:
-            month, day, year = map(int, match.groups())
-            return f"{month:02}/{day:02}/{year}"  # Ensure MM/DD/YYYY format
+            month, day, year = match.groups()
+            year = int(year)
+            if year < 100:  # Convert YY to YYYY (assuming 2000s)
+                year += 2000
+            return f"{int(month):02}/{int(day):02}/{year}"  # Ensure MM/DD/YYYY format
 
     raise ValueError(f"Invalid date format: {input_date}")
+
 
 
 class MeetingButtons(discord.ui.View):
