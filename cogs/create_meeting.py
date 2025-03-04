@@ -1,6 +1,4 @@
-import os
-import sqlite3
-import discord
+import os, sqlite3, discord
 from discord import app_commands
 from discord.ext import commands
 from datetime import datetime
