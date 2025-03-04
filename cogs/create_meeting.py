@@ -46,7 +46,7 @@ def parse_date(input_date: str) -> str:
             year = int(year)
             if year < 100:  # Convert YY to YYYY (assuming 2000s)
                 year += 2000
-            return f"{int(month):02}/{int(day):02}/{year}"  # Ensure MM/DD/YYYY format
+            return f"{year}-{int(month):02}-{int(day):02}"  # Return YYYY/MM/DD format
 
     raise ValueError(f"Invalid date format: {input_date}")
 
@@ -111,8 +111,8 @@ class MeetingCog(commands.Cog):
         except ValueError as e:
             return await interaction.response.send_message(str(e), ephemeral=True)
 
-        meeting_datetime_str = f"{formatted_date} {formatted_time}"
-        meeting_datetime_obj = datetime.strptime(meeting_datetime_str, "%m/%d/%Y %H:%M")
+        meeting_datetime_str = f"{formatted_date} {formatted_time}:00"
+        meeting_datetime_obj = datetime.strptime(meeting_datetime_str, "%Y-%m-%d %H:%M:%S")
 
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
