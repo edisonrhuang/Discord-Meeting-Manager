@@ -62,7 +62,7 @@ class Client(commands.Bot):
             synced = await self.tree.sync(guild=GUILD_ID)
             print(f"Synced {len(synced)} command(s) for guild {GUILD_ID.id}")
         except Exception as e:
-            print(f"Error syncing commands: (e)")
+            print(f"Error syncing commands: {e}")
         print(f'Logged on as {self.user}')
 
 intents = discord.Intents.default()
