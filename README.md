@@ -48,3 +48,6 @@ Creates a new meeting with the specified title, description, date, and time.
 - **[time]**: The time of the meeting (Supported formats: `HH:MM PM`, `HH:MM pm`, `HH:MM PM`, `HH:MM pm`, or `HH:MM` in 24-hour format).
 - **[date]**: The date of the meeting (Supported formats: `MM/DD/YYYY` or `MM/DD/YY`).
 
+### `/cancel_meeting [title]`
+
+Cancels the titled meeting, removing the generated text and voice channels, and messages the forum post that the meeting has been cancelled.
