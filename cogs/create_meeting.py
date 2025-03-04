@@ -149,7 +149,7 @@ class MeetingCog(commands.Cog):
             )
 
         # 4. Create a meeting role with the name "Meeting: {meeting_db_id}"
-        role_name = f"Meeting: {meeting_db_id}"
+        role_name = f"Meeting: {title}"
         try:
             meeting_role = await guild.create_role(
                 name=role_name, reason="Created for meeting access"
@@ -160,6 +160,7 @@ class MeetingCog(commands.Cog):
             )
 
         # 5. Create restricted text and voice channels (only visible to members with the meeting role).
+        sanitized_meeting_title = title.lower().replace(" ", "-")
         overwrites = {
             guild.default_role: discord.PermissionOverwrite(view_channel=False),
             meeting_role: discord.PermissionOverwrite(
@@ -168,7 +169,7 @@ class MeetingCog(commands.Cog):
         }
         try:
             meeting_text_channel = await guild.create_text_channel(
-                name=f"meeting-{meeting_db_id}-text",
+                name=f"{sanitized_meeting_title}-text",
                 category=meetings_category,
                 overwrites=overwrites,
             )
@@ -178,7 +179,7 @@ class MeetingCog(commands.Cog):
             )
         try:
             meeting_voice_channel = await guild.create_voice_channel(
-                name=f"meeting-{meeting_db_id}-voice",
+                name=f"{sanitized_meeting_title}-voice",
                 category=meetings_category,
                 overwrites=overwrites,
             )
