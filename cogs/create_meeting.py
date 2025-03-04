@@ -88,7 +88,7 @@ class MeetingCog(commands.Cog):
         title="The title for the meeting",
         description="Description of the meeting",
         time="Meeting time (e.g., 1:00 PM, 13:00)",
-        date="Meeting date (e.g., 3/4/2025, 03/04/2025)",
+        date="Meeting date (e.g., M/D/YY, MM/DD/YYYY)",
     )
     @app_commands.guilds(GUILD_ID)
     async def create_meeting(self, interaction: discord.Interaction, title: str, description: str, time: str, date: str):
