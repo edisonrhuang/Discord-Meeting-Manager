@@ -9,6 +9,8 @@ GUILD_ID = discord.Object(id=(os.getenv("GUILD_ID")))
 
 class Client(commands.Bot):
     async def setup_hook(self):
+        await self.create_database()
+
         # Dynamically load all Cog files from the cogs folder.
         for filename in os.listdir("./cogs"):
             if filename.endswith(".py"):
@@ -30,16 +32,14 @@ class Client(commands.Bot):
                 name TEXT NOT NULL,
                 description TEXT,
                 host_id INTEGER NOT NULL, --Discord User ID
-                date_time INTEGER, --Unix timestamp (seconds)
+                date_time TEXT, --Unix timestamp (seconds)
                 duration INTEGER, --In minutes
-                created_at INTEGER DEFAULT (strftime('%s', 'now')),
-                updated_at INTEGER DEFAULT (strftime('%s', 'now')),
+                created_at TEXT DEFAULT (strftime('%s', 'now')),
+                updated_at TEXT DEFAULT (strftime('%s', 'now')),
                 status TEXT CHECK(status IN ('scheduled', 'cancelled', 'completed')) DEFAULT 'scheduled',
                 voice_channel_id INTEGER,
                 thread_id INTEGER,
-                role_id INTEGER,
-                recurring_interval TEXT CHECK(recurring_interval IN ('none', 'daily', 'weekly', 'monthly')) DEFAULT 'none',
-                recurring_end_date INTEGER --Unix timestamp (seconds)
+                role_id INTEGER
             );
         """)
 
@@ -55,8 +55,6 @@ class Client(commands.Bot):
         print("Database initialized successfully.")
 
     async def on_ready(self):
-        await self.create_database()
-
         # Sync the command tree for the specific guild so that the slash commands are registered immediately.
         try:
             synced = await self.tree.sync(guild=GUILD_ID)
