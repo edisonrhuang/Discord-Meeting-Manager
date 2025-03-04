@@ -1,11 +1,11 @@
 # commands/hello.py
 
-import discord
+import discord, os
 from discord import app_commands
 from discord.ext import commands
 
 # SERVER ID
-GUILD_ID = discord.Object(id=1337086900409864224)
+GUILD_ID = discord.Object(id=(os.getenv("GUILD_ID")))
 
 
 # Create a Cog for the hello command

@@ -1,13 +1,10 @@
 import discord, os, dotenv, aiosqlite
 from discord.ext import commands
 
-import os
-from dotenv import load_dotenv
-
-load_dotenv()
+dotenv.load_dotenv()
 
 # SERVER ID
-GUILD_ID = discord.Object(id=1337086900409864224)
+GUILD_ID = discord.Object(id=(os.getenv("GUILD_ID")))
 
 
 class Client(commands.Bot):
