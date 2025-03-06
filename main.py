@@ -47,6 +47,7 @@ class Client(commands.Bot):
             CREATE TABLE IF NOT EXISTS participants (
                 meeting_id INTEGER,
                 user_id, INTEGER,
+                current_status TEXT CHECK(current_status IN ('Available','Busy')) DEFAULT 'Busy',
                 FOREIGN KEY (meeting_id) references meetings(id) ON DELETE CASCADE
             );
         """)
