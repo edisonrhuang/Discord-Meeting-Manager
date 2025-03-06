@@ -53,3 +53,9 @@ Creates a new meeting with the specified title, description, date, and time.
 Cancels the meeting according to its specific id, removing the generated text and voice channels, and messages the forum post that the meeting has been cancelled.
 
 - **[meeting id]**: The id of the meeting.
+
+### `/change_status [status]`
+
+Changes your current availability status for future meetings.
+
+- **[status]**: The current status of the user (Formats: 'Available' or 'Busy').
