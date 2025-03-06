@@ -15,38 +15,38 @@ class CancelMeetingCog(commands.Cog):
         name="cancel_meeting",
         description="Cancels a meeting: updates status, cleans up channels/role,and message in the forum post."
     )
-    @app_commands.describe(meeting_title="The title of the meeting to cancel")
+    @app_commands.describe(meeting_id="The id of the meeting to cancel")
     @app_commands.guilds(GUILD_ID)
-    async def cancel_meeting(self, interaction: discord.Interaction, meeting_title: str):
+    async def cancel_meeting(self, interaction: discord.Interaction, meeting_id: int):
         guild = interaction.guild
         if guild is None:
             return await interaction.response.send_message("This command can only be used in a server.", ephemeral=True)
 
-        # retrieve meeting details using the meeting title.
+        # retrieve meeting details using the meeting id.
         async with aiosqlite.connect(DATABASE_PATH) as db:
             async with db.execute(
-                "SELECT name, voice_channel_id, thread_id, role_id, status FROM meetings WHERE name = ?",
-                (meeting_title,)
+                "SELECT id, name, voice_channel_id, thread_id, role_id, status FROM meetings WHERE id = ?",
+                (meeting_id,)
             ) as cursor:
                 row = await cursor.fetchone()
 
         if row is None:
-            return await interaction.response.send_message(f"Meeting with title '{meeting_title}' not found.", ephemeral=True)
+            return await interaction.response.send_message(f"Meeting with id: '{meeting_id}' not found.", ephemeral=True)
 
-        name, voice_channel_id, thread_id, role_id, status = row
+        meeting_id_db, name, voice_channel_id, thread_id, role_id, status = row
         if status == "cancelled":
             return await interaction.response.send_message(f"The meeting '{name}' is already cancelled.", ephemeral=True)
 
         # Update the meeting status to 'cancelled' in the database.
         async with aiosqlite.connect(DATABASE_PATH) as db:
             await db.execute(
-                "UPDATE meetings SET status = 'cancelled', updated_at = strftime('%s','now') WHERE name = ?",
-                (meeting_title,)
+                "UPDATE meetings SET status = 'cancelled', updated_at = strftime('%s','now') WHERE id = ?",
+                (meeting_id,)
             )
             await db.commit()
 
-        # delete text
-        text_channel_name = f"{meeting_title.lower().replace(' ', '-')}-text"
+        # delete text channel
+        text_channel_name = f"{name.lower().replace(' ', '-')}-text"
         text_channel = discord.utils.get(guild.text_channels, name=text_channel_name)
         if text_channel:
             try:
@@ -78,6 +78,7 @@ class CancelMeetingCog(commands.Cog):
             except Exception as e:
                 print(f"Error fetching thread channel: {e}")
 
+        # send message to forum thread
         if thread_channel and isinstance(thread_channel, discord.Thread):
             try:
                 if thread_channel.archived:
@@ -90,7 +91,7 @@ class CancelMeetingCog(commands.Cog):
             print("Thread channel not found or not a thread.")
 
         await interaction.response.send_message(
-            f"Meeting '{meeting_title}' has been cancelled and a notice has been posted in the forum.",
+            f"Meeting {name} (id: {meeting_id}) has been cancelled and a notice has been posted in the forum.",
             ephemeral=True
         )
 
