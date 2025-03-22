@@ -7,13 +7,14 @@ from discord.ext import commands
 GUILD_ID = discord.Object(id=os.getenv("GUILD_ID"))
 DATABASE_PATH = "database.db"
 
+
 class CancelMeetingCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
     @app_commands.command(
         name="cancel_meeting",
-        description="Cancels a meeting: updates status, cleans up channels/role,and message in the forum post."
+        description="Cancels a meeting: updates status, cleans up channels/role,and message in the forum post.",
     )
     @app_commands.describe(meeting_id="The id of the meeting to cancel")
     @app_commands.guilds(GUILD_ID)
@@ -24,10 +25,7 @@ class CancelMeetingCog(commands.Cog):
 
         # retrieve meeting details using the meeting id.
         async with aiosqlite.connect(DATABASE_PATH) as db:
-            async with db.execute(
-                "SELECT id, name, voice_channel_id, thread_id, role_id, status FROM meetings WHERE id = ?",
-                (meeting_id,)
-            ) as cursor:
+            async with db.execute("SELECT id, name, voice_channel_id, thread_id, role_id, status FROM meetings WHERE id = ?", (meeting_id,)) as cursor:
                 row = await cursor.fetchone()
 
         if row is None:
@@ -39,10 +37,7 @@ class CancelMeetingCog(commands.Cog):
 
         # Update the meeting status to 'cancelled' in the database.
         async with aiosqlite.connect(DATABASE_PATH) as db:
-            await db.execute(
-                "UPDATE meetings SET status = 'cancelled', updated_at = strftime('%s','now') WHERE id = ?",
-                (meeting_id,)
-            )
+            await db.execute("UPDATE meetings SET status = 'cancelled', updated_at = strftime('%s','now') WHERE id = ?", (meeting_id,))
             await db.commit()
 
         # delete text channel
@@ -90,10 +85,8 @@ class CancelMeetingCog(commands.Cog):
         else:
             print("Thread channel not found or not a thread.")
 
-        await interaction.response.send_message(
-            f"Meeting {name} (id: {meeting_id}) has been cancelled and a notice has been posted in the forum.",
-            ephemeral=True
-        )
+        await interaction.response.send_message(f"Meeting {name} (id: {meeting_id}) has been cancelled and a notice has been posted in the forum.", ephemeral=True)
+
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(CancelMeetingCog(bot))
