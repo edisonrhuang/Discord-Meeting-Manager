@@ -118,10 +118,7 @@ class RescheduleMeetingCog(commands.Cog):
         mid, name, description, current_datetime_str, voice_channel_id, thread_id, role_id = row
 
         # Parse the current meeting datetime.
-        try:
-            current_dt = datetime.strptime(current_datetime_str, "%Y-%m-%d %H:%M:%S")
-        except Exception as e:
-            return await interaction.response.send_message(f"Error parsing current meeting time: {e}", ephemeral=True)
+        current_dt = datetime.strptime(current_datetime_str, "%Y-%m-%d %H:%M:%S")
 
         # Determine new time and date values and check if they are 'none'.
         new_time_val = current_dt.strftime("%H:%M") if new_time.lower() == "none" else parse_time(new_time)
@@ -129,10 +126,7 @@ class RescheduleMeetingCog(commands.Cog):
 
         # Construct the new meeting datetime string.
         new_meeting_datetime_str = f"{new_date_val} {new_time_val}:00"
-        try:
-            new_dt = datetime.strptime(new_meeting_datetime_str, "%Y-%m-%d %H:%M:%S")
-        except Exception as e:
-            return await interaction.response.send_message(f"Error parsing new meeting datetime: {e}", ephemeral=True)
+        new_dt = datetime.strptime(new_meeting_datetime_str, "%Y-%m-%d %H:%M:%S")
 
         # Update the meeting record in the database.
         async with aiosqlite.connect(DATABASE_PATH) as db:
@@ -141,8 +135,7 @@ class RescheduleMeetingCog(commands.Cog):
             await db.commit()
 
         # Notify participants in the meeting's text channel.
-        text_channel_name = f"{name.lower().replace(' ', '-')}-text"
-        text_channel = discord.utils.get(guild.text_channels, name=text_channel_name)
+        text_channel = discord.utils.get(guild.text_channels, name=f"{name.lower().replace(' ', '-')}-text")
         meeting_role = guild.get_role(role_id)
         
         if text_channel and meeting_role:
@@ -154,6 +147,7 @@ class RescheduleMeetingCog(commands.Cog):
 
         # Create a new embed using the same format as the create_meeting embed.
         discord_timestamp = f"<t:{int(new_dt.timestamp())}:F>"
+        
         new_embed = discord.Embed(title=f"Meeting {name} Rescheduled!", description=f"\nMeeting ID: {mid}\n{description}", color=discord.Color.blue())
         new_embed.add_field(name="Date & Time", value=discord_timestamp, inline=True)
         new_embed.add_field(name="Text Channel", value=text_channel.mention, inline=False)
