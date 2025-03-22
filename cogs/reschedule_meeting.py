@@ -98,7 +98,7 @@ class RescheduleMeetingCog(commands.Cog):
         description="Reschedules a meeting and notifies participants.",
     )
     @app_commands.describe(
-        id="The unique meeting ID to reschedule",
+        meeting_id="The unique meeting ID to reschedule",
         new_time="New meeting time (e.g., 1:00 PM, 13:00) or 'none' to keep current",
         new_date="New meeting date (e.g., M/D/YY, MM/DD/YYYY) or 'none' to keep current",
     )
