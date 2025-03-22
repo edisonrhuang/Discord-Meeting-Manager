@@ -82,7 +82,7 @@ class MeetingCog(commands.Cog):
         self.bot = bot
 
     @app_commands.command(
-        name="create_meeting",
+        name="create",
         description="Creates a meeting and logs it to the database.",
     )
     @app_commands.describe(
