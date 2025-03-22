@@ -18,7 +18,6 @@ DATE_FORMATS = [
     r"^(0?[1-9]|1[0-2])/(0?[1-9]|[12][0-9]|3[01])/(\d{2})$",  # MM/DD/YY or M/D/YY
 ]
 
-
 def parse_time(input_time: str) -> str:
     """Parses various time formats and returns a 24-hour format string (HH:MM)."""
     for pattern in TIME_FORMATS:
@@ -37,7 +36,6 @@ def parse_time(input_time: str) -> str:
             return f"{hours:02}:{minutes:02}"  # Return HH:MM format
 
     raise ValueError(f"Invalid time format: {input_time}")
-
 
 def parse_date(input_date: str) -> str:
     """Parses various date formats and returns MM/DD/YYYY format."""
@@ -74,7 +72,6 @@ class MeetingButtons(discord.ui.View):
             await interaction.response.send_message("You have been opted out of the meeting.", ephemeral=True)
         except Exception as e:
             await interaction.response.send_message(f"Error opting out: {e}", ephemeral=True)
-
 
 class RescheduleMeetingCog(commands.Cog):
     """
@@ -185,7 +182,6 @@ class RescheduleMeetingCog(commands.Cog):
             f"Meeting '{name}' has been rescheduled to {discord_timestamp}. A new update has been posted in the forum.",
             ephemeral=True,
         )
-
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(RescheduleMeetingCog(bot))
