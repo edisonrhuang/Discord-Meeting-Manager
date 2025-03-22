@@ -10,13 +10,14 @@ DATABASE_PATH = "database.db"
 
 TIME_FORMATS = [
     r"^(1[0-2]|0?[1-9]):([0-5][0-9]) ?([APap][Mm])$",  # 12-hour format with AM/PM (e.g., "1:00 PM", "01:00pm")
-    r"^(1[0-9]|2[0-3]|0?[0-9]):([0-5][0-9])$"  # 24-hour format (e.g., "13:00")
+    r"^(1[0-9]|2[0-3]|0?[0-9]):([0-5][0-9])$",  # 24-hour format (e.g., "13:00")
 ]
 
 DATE_FORMATS = [
     r"^(0?[1-9]|1[0-2])/(0?[1-9]|[12][0-9]|3[01])/(\d{4})$",  # MM/DD/YYYY or M/D/YYYY
-    r"^(0?[1-9]|1[0-2])/(0?[1-9]|[12][0-9]|3[01])/(\d{2})$"  # MM/DD/YY or M/D/YY
+    r"^(0?[1-9]|1[0-2])/(0?[1-9]|[12][0-9]|3[01])/(\d{2})$",  # MM/DD/YY or M/D/YY
 ]
+
 
 def parse_time(input_time: str) -> str:
     """Parses various time formats and returns a 24-hour format string (HH:MM)."""
@@ -36,6 +37,7 @@ def parse_time(input_time: str) -> str:
             return f"{hours:02}:{minutes:02}"  # Return HH:MM format
 
     raise ValueError(f"Invalid time format: {input_time}")
+
 
 def parse_date(input_date: str) -> str:
     """Parses various date formats and returns MM/DD/YYYY format."""
