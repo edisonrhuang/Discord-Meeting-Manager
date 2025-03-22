@@ -167,7 +167,7 @@ class RescheduleMeetingCog(commands.Cog):
         # Create a view with the same MeetingButtons.
         view = MeetingButtons(meeting_role)
 
-        # Instead of updating the existing embed, post a new message in the forum thread.
+        # Post a new message in the forum thread.
         try:
             # Fetch the forum thread (from the stored thread_id)
             thread_channel = guild.get_channel(thread_id)
@@ -180,6 +180,7 @@ class RescheduleMeetingCog(commands.Cog):
         except Exception as e:
             print(f"Error posting new embed in forum thread for meeting {name}: {e}")
 
+        # Send a confirmation message to the user.
         return await interaction.response.send_message(
             f"Meeting '{name}' has been rescheduled to {discord_timestamp}. A new update has been posted in the forum.",
             ephemeral=True,
