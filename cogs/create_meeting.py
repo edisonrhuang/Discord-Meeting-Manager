@@ -51,7 +51,6 @@ def parse_date(input_date: str) -> str:
     raise ValueError(f"Invalid date format: {input_date}")
 
 
-
 class MeetingButtons(discord.ui.View):
     """A View that contains two buttons: Opt-In and Opt-Out."""
 
