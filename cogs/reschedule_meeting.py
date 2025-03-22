@@ -125,13 +125,13 @@ class RescheduleMeetingCog(commands.Cog):
         new_date_val = current_dt.strftime("%Y-%m-%d") if new_date.lower() == "none" else parse_date(new_date)
 
         # Construct the new meeting datetime string.
-        new_meeting_datetime_str = f"{new_date_val} {new_time_val}:00"
-        new_dt = datetime.strptime(new_meeting_datetime_str, "%Y-%m-%d %H:%M:%S")
+        new_meeting_dt = f"{new_date_val} {new_time_val}:00"
+        new_dt = datetime.strptime(new_meeting_dt, "%Y-%m-%d %H:%M:%S")
 
         # Update the meeting record in the database.
         async with aiosqlite.connect(DATABASE_PATH) as db:
             await db.execute(
-                "UPDATE meetings SET date_time = ?, updated_at = strftime('%s','now') WHERE id = ?", (new_meeting_datetime_str, mid))
+                "UPDATE meetings SET date_time = ?, updated_at = strftime('%s','now') WHERE id = ?", (new_meeting_dt, mid))
             await db.commit()
 
         # Notify participants in the meeting's text channel.
