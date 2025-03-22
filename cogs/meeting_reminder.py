@@ -9,8 +9,7 @@ class UpcomingMeetingReminder(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.reminded_meetings = set()  # Store IDs of meetings that got a reminder
-        self.check_meetings.start()      # Start the loop when the cog is loaded
-
+        self.check_meetings.start()  # Start the loop when the cog is loaded
 
     def cog_unload(self):
         self.check_meetings.cancel()  # Cancel the loop when the cog is unloaded
@@ -27,7 +26,7 @@ class UpcomingMeetingReminder(commands.Cog):
                 FROM meetings
                 WHERE status = 'scheduled' AND date_time BETWEEN ? AND ?
                 """,
-                (now.strftime("%Y-%m-%d %H:%M:%S"), reminder_time.strftime("%Y-%m-%d %H:%M:%S"))
+                (now.strftime("%Y-%m-%d %H:%M:%S"), reminder_time.strftime("%Y-%m-%d %H:%M:%S")),
             )
             meetings = await cursor.fetchall()
 
