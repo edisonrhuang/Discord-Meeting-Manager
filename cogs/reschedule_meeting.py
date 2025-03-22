@@ -94,7 +94,7 @@ class RescheduleMeetingCog(commands.Cog):
         self.bot = bot
 
     @app_commands.command(
-        name="reschedule_meeting",
+        name="reschedule",
         description="Reschedules a meeting and notifies participants.",
     )
     @app_commands.describe(
