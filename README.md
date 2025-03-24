@@ -4,6 +4,7 @@ This bot was inspired by the meeting functionality of tools like Microsoft Teams
 ## Features
 - Schedule and create meetings with private text and voice channels
 - Cancel meetings along with notifications
+- Reschedule meetings if availability changes.
 - Automatically receive reminders 15 minutes prior to a meeting
 - Automatic drag into designated meeting channels
 
@@ -52,7 +53,15 @@ Creates a new meeting with the specified title, description, date, and time.
 
 Cancels the meeting according to its specific id, removing the generated text and voice channels, and messages the forum post that the meeting has been cancelled.
 
-- **[meeting id]**: The id of the meeting.
+- **[meeting_id]**: The id of the meeting.
+
+### `/reschedule_meeting [meeting_id] [new_time] [new_date]`
+
+Reschedules an existing meeting, updates the meeting's date and time, sends a notification in the meeting's text channel, and posts a new update in the forum thread with an updated embed.
+
+- **[meeting_id]**: The id of the meeting.
+- **[new_time]**: The new meeting time. Enter "none" to make no changes.
+- **[new_date]**: The new meeting date. Enter "none" to make no changes.
 
 ### `/change_status [status]`
 
