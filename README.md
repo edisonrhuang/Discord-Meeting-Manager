@@ -40,7 +40,7 @@ python main.py
 
 ## Command Guide
 
-### `/create_meeting [title] [description] [time] [date]`
+### `/create_meeting [title] [description] [time] [date] (recurrence)`
 
 Creates a new meeting with the specified title, description, date, and time.
 
@@ -48,6 +48,7 @@ Creates a new meeting with the specified title, description, date, and time.
 - **[description]**: The meeting's description.
 - **[time]**: The time of the meeting (Supported formats: `HH:MM PM`, `HH:MM pm`, `HH:MM PM`, `HH:MM pm`, or `HH:MM` in 24-hour format).
 - **[date]**: The date of the meeting (Supported formats: `MM/DD/YYYY` or `MM/DD/YY`).
+- **(recurrence)**: An optional parameter that sets the meeting's recurrence pattern (Supported recurrence: none, daily, weekly, monthly).
 
 ### `/cancel_meeting [meeting id]`
 
