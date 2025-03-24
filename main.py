@@ -39,7 +39,8 @@ class Client(commands.Bot):
                 status TEXT CHECK(status IN ('scheduled', 'cancelled', 'completed')) DEFAULT 'scheduled',
                 voice_channel_id INTEGER,
                 thread_id INTEGER,
-                role_id INTEGER
+                role_id INTEGER,
+                recurrence INTEGER CHECK(recurrence IN (0, 1, 7, 30)) DEFAULT 0
             );
         """)
 
