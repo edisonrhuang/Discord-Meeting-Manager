@@ -164,7 +164,7 @@ class MeetingCog(commands.Cog):
             await db.execute("UPDATE meetings SET thread_id = ? WHERE id = ?", (post_message.thread.id, meeting_db_id))
             await db.commit()
 
-        await interaction.response.send_message("Meeting created successfully! Check the forum post for details.")
+        await interaction.response.send_message("Meeting created successfully! Check the forum post for details.", ephemeral=True)
 
 
 async def setup(bot: commands.Bot):

@@ -30,7 +30,6 @@ class UpcomingMeetingReminder(commands.Cog):
             )
             meetings = await cursor.fetchall()
 
-        print(f"Now: {now}, Reminder Time: {reminder_time}, Meetings: {meetings}")
         for meeting in meetings:
             meeting_id, name, date_time_str, role_id, thread_id = meeting
             meeting_time = datetime.strptime(date_time_str, "%Y-%m-%d %H:%M:%S")
