@@ -59,3 +59,9 @@ Cancels the meeting according to its specific id, removing the generated text an
 Changes your current availability status for future meetings.
 
 - **[status]**: The current status of the user (Formats: 'Available' or 'Busy').
+
+### `/cleanup [meeting_id]`
+
+Cleans up the meeting corresponding to the given ID by archiving the text channel and forum post, and deleting the voice channel and role
+
+- **[meeting_id]**: The id of the meeting.
