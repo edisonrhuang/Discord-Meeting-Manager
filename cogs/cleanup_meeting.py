@@ -80,7 +80,7 @@ class CleanupCog(commands.Cog):
 
 
             # Delete meeting entry from database
-            await db.execute("DELETE FROM meetings WHERE id = ?", (meeting_id,))
+            await db.execute("UPDATE meetings SET status = 'completed', updated_at = strftime('%s','now') WHERE id = ?", (meeting_id,))
             await db.commit()
 
         await interaction.response.send_message(f"Meeting {meeting_id} cleaned up successfully.", ephemeral=True)

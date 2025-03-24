@@ -1,7 +1,7 @@
 import discord, os, aiosqlite
 from discord import app_commands
-from discord.ext import commands
-from datetime import datetime
+from discord.ext import commands, tasks
+from datetime import datetime, timedelta
 import re
 
 # Load GUILD_ID from .env file
@@ -18,6 +18,7 @@ DATE_FORMATS = [
     r"^(0?[1-9]|1[0-2])/(0?[1-9]|[12][0-9]|3[01])/(\d{2})$",  # MM/DD/YY or M/D/YY
 ]
 
+RECURRING_OPTIONS = {"none": None, "daily": 1, "weekly": 7, "monthly": 30}
 
 def parse_time(input_time: str) -> str:
     """Parses various time formats and returns a 24-hour format string (HH:MM)."""
@@ -90,13 +91,13 @@ class MeetingCog(commands.Cog):
         description="Description of the meeting",
         time="Meeting time (e.g., 1:00 PM, 13:00)",
         date="Meeting date (e.g., M/D/YY, MM/DD/YYYY)",
+        recurrence="Recurrence pattern: none, daily, weekly, monthly",
     )
     @app_commands.guilds(GUILD_ID)
-    async def create_meeting(self, interaction: discord.Interaction, title: str, description: str, time: str, date: str):
+    async def create_meeting(self, interaction: discord.Interaction, title: str, description: str, time: str, date: str, recurrence: str="none"):
         guild = interaction.guild
         if guild is None:
             return await interaction.response.send_message("This command can only be used in a server.", ephemeral=True)
-
         # Ensure category and forum exist
         meetings_category = discord.utils.get(guild.categories, name="Meetings")
         if meetings_category is None:
@@ -105,6 +106,10 @@ class MeetingCog(commands.Cog):
         meeting_list_forum = discord.utils.get(meetings_category.channels, name="meeting-list", type=discord.ChannelType.forum)
         if meeting_list_forum is None:
             return await interaction.response.send_message("The 'meeting-list' forum channel does not exist.", ephemeral=True)
+
+        recurrence_days = RECURRING_OPTIONS.get(recurrence.lower())
+        if recurrence_days is None and recurrence.lower() != "none":
+            return await interaction.response.send_message("Invalid recurrence option. Choose from: none, daily, weekly, monthly", ephemeral=True)
 
         try:
             formatted_time = parse_time(time)
@@ -121,10 +126,10 @@ class MeetingCog(commands.Cog):
         async with aiosqlite.connect(DATABASE_PATH) as db:
             cursor = await db.execute(
                 """
-                INSERT INTO meetings (name, description, host_id, date_time, created_at, updated_at, status)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO meetings (name, description, host_id, date_time, created_at, updated_at, status, recurrence)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """,
-                (title, description, interaction.user.id, meeting_datetime_str, now, now, "scheduled"),
+                (title, description, interaction.user.id, meeting_datetime_str, now, now, "scheduled", recurrence_days),
             )
             await db.commit()
             meeting_db_id = cursor.lastrowid
@@ -154,6 +159,7 @@ class MeetingCog(commands.Cog):
         # Create an embed with a Discord timestamp
         embed = discord.Embed(title=f"Meeting {title} Created!", description=f"\nMeeting ID: {meeting_db_id}\n{description}", color=discord.Color.blue())
         embed.add_field(name="Date & Time", value=discord_timestamp, inline=True)
+        embed.add_field(name="Recurrence", value=recurrence.capitalize() if recurrence_days else "None", inline=True)
         embed.add_field(name="Text Channel", value=meeting_text_channel.mention, inline=False)
         embed.add_field(name="Voice Channel", value=meeting_voice_channel.mention, inline=False)
 
@@ -166,6 +172,28 @@ class MeetingCog(commands.Cog):
 
         await interaction.response.send_message("Meeting created successfully! Check the forum post for details.", ephemeral=True)
 
+    """
+    @tasks.loop(hours=24)
+    async def check_recurring_meetings(self):
+        async with aiosqlite.connect(DATABASE_PATH) as db:
+            cursor = await db.execute("SELECT id, name, description, host_id, date_time, recurrence FROM meetings WHERE status='scheduled' AND recurrence IS NOT NULL")
+            meetings = await cursor.fetchall()
+        
+        now = datetime.now()
+        for meeting in meetings:
+            meeting_id, name, description, host_id, date_time, recurrence = meeting
+            meeting_time = datetime.strptime(date_time, "%Y-%m-%d %H:%M:%S")
+            if now >= meeting_time:
+                new_time = meeting_time + timedelta(days=int(recurrence))
+                async with aiosqlite.connect(DATABASE_PATH) as db:
+                    await db.execute("UPDATE meetings SET date_time = ? WHERE id = ?", (new_time.strftime("%Y-%m-%d %H:%M:%S"), meeting_id))
+                    await db.commit()
+                print(f"Recurring meeting '{name}' rescheduled to {new_time}")
+
+    @check_recurring_meetings.before_loop
+    async def before_check_recurring_meetings(self):
+        await self.bot.wait_until_ready()"
+    """
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(MeetingCog(bot))
