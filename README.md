@@ -7,6 +7,7 @@ This bot was inspired by the meeting functionality of tools like Microsoft Teams
 - Reschedule meetings if availability changes.
 - Automatically receive reminders 15 minutes prior to a meeting
 - Automatic drag into designated meeting channels
+- User notifications about conflicting meetings
 
 ## Bot Setup Guide
 ### Prerequisites
