@@ -1,6 +1,4 @@
-import discord
-import os
-import aiosqlite
+import discord, os, aiosqlite
 from discord import app_commands
 from discord.ext import commands
 

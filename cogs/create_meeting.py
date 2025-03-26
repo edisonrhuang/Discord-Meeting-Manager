@@ -57,14 +57,21 @@ def parse_date(input_date: str) -> str:
 class MeetingButtons(discord.ui.View):
     """A View that contains two buttons: Opt-In and Opt-Out."""
 
-    def __init__(self, meeting_role: discord.Role):
+    def __init__(self, meeting_role: discord.Role, meeting_id: int):
         super().__init__(timeout=None)
         self.meeting_role = meeting_role
+        self.meeting_id = meeting_id
 
     @discord.ui.button(label="Opt-In", style=discord.ButtonStyle.green, custom_id="meeting_optin")
     async def opt_in(self, interaction: discord.Interaction, button: discord.ui.Button):
         try:
             await interaction.user.add_roles(self.meeting_role)
+            async with aiosqlite.connect("database.db") as db:
+                await db.execute(
+                    "INSERT OR IGNORE INTO participants (meeting_id, user_id, current_status) VALUES (?, ?, ?)",
+                    (self.meeting_id, interaction.user.id, "Available")
+                )
+                await db.commit()
             await interaction.response.send_message("You have been opted in for the meeting!", ephemeral=True)
         except Exception as e:
             await interaction.response.send_message(f"Error signing up: {e}", ephemeral=True)
@@ -73,6 +80,12 @@ class MeetingButtons(discord.ui.View):
     async def opt_out(self, interaction: discord.Interaction, button: discord.ui.Button):
         try:
             await interaction.user.remove_roles(self.meeting_role)
+            async with aiosqlite.connect("database.db") as db:
+                await db.execute(
+                    "DELETE FROM participants WHERE meeting_id = ? AND user_id = ?",
+                    (self.meeting_id, interaction.user.id)
+                )
+                await db.commit()
             await interaction.response.send_message("You have been opted out of the meeting.", ephemeral=True)
         except Exception as e:
             await interaction.response.send_message(f"Error opting out: {e}", ephemeral=True)
@@ -163,7 +176,7 @@ class MeetingCog(commands.Cog):
         embed.add_field(name="Text Channel", value=meeting_text_channel.mention, inline=False)
         embed.add_field(name="Voice Channel", value=meeting_voice_channel.mention, inline=False)
 
-        view = MeetingButtons(meeting_role)
+        view = MeetingButtons(meeting_role, meeting_db_id)
         post_message = await meeting_list_forum.create_thread(name=title, embed=embed, view=view)
 
         async with aiosqlite.connect(DATABASE_PATH) as db:
