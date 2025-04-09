@@ -20,6 +20,7 @@ DATE_FORMATS = [
 
 RECURRING_OPTIONS = {"none": None, "daily": 1, "weekly": 7, "monthly": 30}
 
+
 def parse_time(input_time: str) -> str:
     """Parses various time formats and returns a 24-hour format string (HH:MM)."""
     for pattern in TIME_FORMATS:
@@ -68,8 +69,7 @@ class MeetingButtons(discord.ui.View):
             await interaction.user.add_roles(self.meeting_role)
             async with aiosqlite.connect("database.db") as db:
                 await db.execute(
-                    "INSERT OR IGNORE INTO participants (meeting_id, user_id, current_status) VALUES (?, ?, ?)",
-                    (self.meeting_id, interaction.user.id, "Available")
+                    "INSERT OR IGNORE INTO participants (meeting_id, user_id, current_status) VALUES (?, ?, ?)", (self.meeting_id, interaction.user.id, "Available")
                 )
                 await db.commit()
             await interaction.response.send_message("You have been opted in for the meeting!", ephemeral=True)
@@ -81,10 +81,7 @@ class MeetingButtons(discord.ui.View):
         try:
             await interaction.user.remove_roles(self.meeting_role)
             async with aiosqlite.connect("database.db") as db:
-                await db.execute(
-                    "DELETE FROM participants WHERE meeting_id = ? AND user_id = ?",
-                    (self.meeting_id, interaction.user.id)
-                )
+                await db.execute("DELETE FROM participants WHERE meeting_id = ? AND user_id = ?", (self.meeting_id, interaction.user.id))
                 await db.commit()
             await interaction.response.send_message("You have been opted out of the meeting.", ephemeral=True)
         except Exception as e:
@@ -107,7 +104,7 @@ class MeetingCog(commands.Cog):
         recurrence="Recurrence pattern: none, daily, weekly, monthly",
     )
     @app_commands.guilds(GUILD_ID)
-    async def create_meeting(self, interaction: discord.Interaction, title: str, description: str, time: str, date: str, recurrence: str="none"):
+    async def create_meeting(self, interaction: discord.Interaction, title: str, description: str, time: str, date: str, recurrence: str = "none"):
         guild = interaction.guild
         if guild is None:
             return await interaction.response.send_message("This command can only be used in a server.", ephemeral=True)
@@ -207,6 +204,7 @@ class MeetingCog(commands.Cog):
     async def before_check_recurring_meetings(self):
         await self.bot.wait_until_ready()"
     """
+
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(MeetingCog(bot))
