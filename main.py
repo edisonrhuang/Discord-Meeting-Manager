@@ -7,6 +7,34 @@ dotenv.load_dotenv()
 GUILD_ID = discord.Object(id=(os.getenv("GUILD_ID")))
 
 
+async def ensure_custom_emoji(guild: discord.Guild, emoji_name: str, image_path: str) -> discord.Emoji:
+    """
+    Checks if an emoji with the given name exists in the guild.
+    If not, reads the image from image_path and creates it.
+    Returns the emoji (existing or new), or None if creation fails.
+    """
+    # Check if the emoji already exists
+    existing = discord.utils.get(guild.emojis, name=emoji_name)
+    if existing:
+        return existing
+
+    # Read the image file as bytes (ensure it's less than 256KB and in a supported format, e.g. PNG)
+    try:
+        with open(image_path, "rb") as image_file:
+            image_bytes = image_file.read()
+    except Exception as e:
+        print(f"Error reading image file {image_path}: {e}")
+        return None
+
+    try:
+        emoji = await guild.create_custom_emoji(name=emoji_name, image=image_bytes)
+        print(f"Created emoji: {emoji}")
+        return emoji
+    except Exception as e:
+        print(f"Error creating emoji {emoji_name} in guild {guild.name}: {e}")
+        return None
+
+
 class Client(commands.Bot):
     async def setup_hook(self):
         await self.create_database()
@@ -69,6 +97,17 @@ class Client(commands.Bot):
         except Exception as e:
             print(f"Error syncing commands: {e}")
         print(f"Logged on as {self.user}")
+
+        # After logging in, ensure the custom emoji exists.
+        guild = self.get_guild(GUILD_ID.id)
+        if guild:
+            # Provide the path to your Discord logo image from your repository.
+            # Make sure this file is accessible when running the bot.
+            emoji = await ensure_custom_emoji(guild, "discord_logo", "images/discord_logo.png")
+            if emoji:
+                print(f"Using custom emoji: {emoji}")
+            else:
+                print("Custom emoji not created, ensure the image file exists and the bot has Manage Emojis permission.")
 
 
 intents = discord.Intents.default()
