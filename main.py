@@ -26,7 +26,8 @@ class Client(commands.Bot):
         self.db = await aiosqlite.connect("database.db")
         cursor = await self.db.cursor()
 
-        await cursor.execute("""
+        await cursor.execute(
+            """
             CREATE TABLE IF NOT EXISTS meetings (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT NOT NULL,
@@ -37,21 +38,25 @@ class Client(commands.Bot):
                 created_at TEXT DEFAULT (strftime('%s', 'now')),
                 updated_at TEXT DEFAULT (strftime('%s', 'now')),
                 status TEXT CHECK(status IN ('scheduled', 'cancelled', 'completed')) DEFAULT 'scheduled',
+                platform TEXT DEFAULT 'Discord',  -- Meeting platform,
                 voice_channel_id INTEGER,
                 thread_id INTEGER,
                 role_id INTEGER,
                 recurrence INTEGER CHECK(recurrence IN (0, 1, 7, 30)) DEFAULT 0
             );
-        """)
+        """
+        )
 
-        await cursor.execute("""
+        await cursor.execute(
+            """
             CREATE TABLE IF NOT EXISTS participants (
                 meeting_id INTEGER,
                 user_id INTEGER,
                 current_status TEXT CHECK(current_status IN ('Available','Busy')) DEFAULT 'Busy',
                 FOREIGN KEY (meeting_id) references meetings(id) ON DELETE CASCADE
             );
-        """)
+        """
+        )
 
         await self.db.commit()
         print("Database initialized successfully.")
@@ -63,7 +68,8 @@ class Client(commands.Bot):
             print(f"Synced {len(synced)} command(s) for guild {GUILD_ID.id}")
         except Exception as e:
             print(f"Error syncing commands: {e}")
-        print(f'Logged on as {self.user}')
+        print(f"Logged on as {self.user}")
+
 
 intents = discord.Intents.default()
 intents.message_content = True
