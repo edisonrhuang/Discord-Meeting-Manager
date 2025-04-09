@@ -12,7 +12,7 @@ class CancelMeetingCog(commands.Cog):
 
     @app_commands.command(
         name="cancel_meeting",
-        description="Cancels a meeting: updates status, cleans up channels/role,and message in the forum post.",
+        description="Cancels a meeting: updates status, cleans up channels/role, and message in the forum post.",
     )
     @app_commands.describe(meeting_id="The id of the meeting to cancel")
     @app_commands.guilds(GUILD_ID)
