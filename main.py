@@ -26,6 +26,7 @@ async def ensure_custom_emoji(guild: discord.Guild, emoji_name: str, image_path:
         print(f"Error reading image file {image_path}: {e}")
         return None
 
+    # Check if the image size is within Discord's limits (256KB)
     try:
         emoji = await guild.create_custom_emoji(name=emoji_name, image=image_bytes)
         print(f"Created emoji: {emoji}")
@@ -101,13 +102,17 @@ class Client(commands.Bot):
         # After logging in, ensure the custom emoji exists.
         guild = self.get_guild(GUILD_ID.id)
         if guild:
-            # Provide the path to your Discord logo image from your repository.
-            # Make sure this file is accessible when running the bot.
-            emoji = await ensure_custom_emoji(guild, "discord_logo", "images/discord_logo.png")
-            if emoji:
-                print(f"Using custom emoji: {emoji}")
-            else:
-                print("Custom emoji not created, ensure the image file exists and the bot has Manage Emojis permission.")
+            emoji_data = [
+                ("discord_logo", "images/discord_logo.png"),
+                ("google_logo", "images/google_logo.png"),
+                ("outlook_logo", "images/outlook_logo.png"),
+            ]
+            for name, path in emoji_data:
+                emoji = await ensure_custom_emoji(guild, name, path)
+                if emoji:
+                    print(f"Using custom emoji: {emoji}")
+                else:
+                    print("Custom emoji not created, ensure the image file exists and the bot has Manage/Create Expressions permission.")
 
 
 intents = discord.Intents.default()
