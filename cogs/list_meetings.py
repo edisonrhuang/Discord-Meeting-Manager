@@ -26,6 +26,7 @@ class ListMeetingsCog(commands.Cog):
         name="list_meetings",
         description="Lists all meetings you are opted into along with their platform.",
     )
+    @app_commands.guilds(GUILD_ID)
     async def list_meetings(self, interaction: discord.Interaction):
         user_id = interaction.user.id
 
