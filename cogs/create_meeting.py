@@ -101,10 +101,11 @@ class MeetingCog(commands.Cog):
         description="Description of the meeting",
         time="Meeting time (e.g., 1:00 PM, 13:00)",
         date="Meeting date (e.g., M/D/YY, MM/DD/YYYY)",
+        duration="Meeting duration (minutes)",
         recurrence="Recurrence pattern: none, daily, weekly, monthly",
     )
     @app_commands.guilds(GUILD_ID)
-    async def create_meeting(self, interaction: discord.Interaction, title: str, description: str, time: str, date: str, recurrence: str = "none"):
+    async def create_meeting(self, interaction: discord.Interaction, title: str, description: str, time: str, date: str, duration: int, recurrence: str = "none"):
         guild = interaction.guild
         if guild is None:
             return await interaction.response.send_message("This command can only be used in a server.", ephemeral=True)
@@ -136,10 +137,10 @@ class MeetingCog(commands.Cog):
         async with aiosqlite.connect(DATABASE_PATH) as db:
             cursor = await db.execute(
                 """
-                INSERT INTO meetings (name, description, host_id, date_time, created_at, updated_at, status, recurrence)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO meetings (name, description, host_id, date_time, duration, created_at, updated_at, status, recurrence)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
-                (title, description, interaction.user.id, meeting_datetime_str, now, now, "scheduled", recurrence_days),
+                (title, description, interaction.user.id, meeting_datetime_str, duration, now, now, "scheduled", recurrence_days),
             )
             await db.commit()
             meeting_db_id = cursor.lastrowid
@@ -169,6 +170,7 @@ class MeetingCog(commands.Cog):
         # Create an embed with a Discord timestamp
         embed = discord.Embed(title=f"Meeting {title} Created!", description=f"\nMeeting ID: {meeting_db_id}\n{description}", color=discord.Color.blue())
         embed.add_field(name="Date & Time", value=discord_timestamp, inline=True)
+        embed.add_field(name="Duration", value=f"{duration} minutes", inline=True)
         embed.add_field(name="Recurrence", value=recurrence.capitalize() if recurrence_days else "None", inline=True)
         embed.add_field(name="Text Channel", value=meeting_text_channel.mention, inline=False)
         embed.add_field(name="Voice Channel", value=meeting_voice_channel.mention, inline=False)
@@ -186,12 +188,12 @@ class MeetingCog(commands.Cog):
     @tasks.loop(hours=24)
     async def check_recurring_meetings(self):
         async with aiosqlite.connect(DATABASE_PATH) as db:
-            cursor = await db.execute("SELECT id, name, description, host_id, date_time, recurrence FROM meetings WHERE status='scheduled' AND recurrence IS NOT NULL")
+            cursor = await db.execute("SELECT id, name, description, host_id, date_time, duration, recurrence FROM meetings WHERE status='scheduled' AND recurrence IS NOT NULL")
             meetings = await cursor.fetchall()
         
         now = datetime.now()
         for meeting in meetings:
-            meeting_id, name, description, host_id, date_time, recurrence = meeting
+            meeting_id, name, description, host_id, date_time, duration, recurrence = meeting
             meeting_time = datetime.strptime(date_time, "%Y-%m-%d %H:%M:%S")
             if now >= meeting_time:
                 new_time = meeting_time + timedelta(days=int(recurrence))
