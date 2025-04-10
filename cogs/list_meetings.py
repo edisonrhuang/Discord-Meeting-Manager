@@ -138,7 +138,7 @@ class ListMeetingsCog(commands.Cog):
 
         # Check if the user is opted into any meetings.
         if not rows:
-            return await interaction.response.send_message("You are not opted into any meetings.", ephemeral=False)
+            return await interaction.response.send_message("You are not opted into any meetings.", ephemeral=True)
 
         # Process the returned rows.
         meetings = []
@@ -168,7 +168,7 @@ class ListMeetingsCog(commands.Cog):
         view = SortMeetingsView(meetings, embed_title)
         embed = view.build_embed()
 
-        await interaction.response.send_message(embed=embed, view=view, ephemeral=False)
+        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
 
 async def setup(bot: commands.Bot):
