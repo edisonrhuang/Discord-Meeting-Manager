@@ -23,13 +23,13 @@ class ConflictCheckerCog(commands.Cog):
         """
         async with aiosqlite.connect("database.db") as db:
             cursor = await db.execute(
-                "SELECT p.user_id, m.id, m.name, m.date_time, m.duration FROM meetings m "
+                "SELECT DISTINCT p.user_id, m.id, m.name, m.date_time, m.duration FROM meetings m "
                 "INNER JOIN participants p ON m.id = p.meeting_id WHERE m.status = 'scheduled'"
             )
             rows = await cursor.fetchall()
         
         # group meetings by user_id
-        user_meetings = defaultdict(list)
+        user_meetings = defaultdict(dict)
         for row in rows:
             user_id, meeting_id, name, date_time_str, duration = row
             try:
@@ -39,67 +39,56 @@ class ConflictCheckerCog(commands.Cog):
             if not duration or duration == 0:
                 duration = DEFAULT_DURATION_MINUTES
             end_time = start_time + timedelta(minutes=duration)
-            user_meetings[user_id].append({"meeting_id": meeting_id, "name": name, "start_time": start_time, "end_time": end_time})
+            user_meetings[user_id][meeting_id] = {"meeting_id": meeting_id, "name": name, "start_time": start_time, "end_time": end_time}
         
         # check for overlapping meetings for each user
-        for user_id, meetings in user_meetings.items():
+        for user_id, meetings_dict in user_meetings.items():
+            meetings = list(meetings_dict.values())
             if len(meetings) < 2:
                 # clear any stored conflict if no conflict is possible now.
-                if user_id in self.notified_conflicts:
-                    del self.notified_conflicts[user_id]
+                self.notified_conflicts.pop(user_id, None)
                 continue
             
             # find meetings that conflict
             meetings.sort(key=lambda m: m["start_time"])
-            conflict_pairs = []
+            conflict_entries = []
             for i in range(len(meetings)):
                 for j in range(i + 1, len(meetings)):
                     a = meetings[i]
                     b = meetings[j]
+                    # Check if meeting a conflicts with meeting b
                     if a["end_time"] > b["start_time"]:
-                        pair = tuple(sorted((a["meeting_id"], b["meeting_id"])))
-                        conflict_pairs.append(pair)
+                        entry = (
+                            f"• Meeting **{a['name']}** starts at {a['start_time'].strftime('%m-%d-%Y %I:%M %p')} and ends at {a['end_time'].strftime('%I:%M %p')}\n"
+                            f"• Meeting **{b['name']}** starts at {b['start_time'].strftime('%m-%d-%Y %I:%M %p')} and ends at {b['end_time'].strftime('%I:%M %p')}\n"
+                        )
+                        conflict_entries.append(entry)
             
-            current_conflicts = set(conflict_pairs)
-            now_ts = datetime.now().timestamp()
-            notify = False
-            
-            if user_id not in self.notified_conflicts:
-                # never notified before, send notification.
-                notify = True
-            else:
-                last_ts, last_conflicts = self.notified_conflicts[user_id]
-                # conflict has changed, send a notification regardless of cooldown.
-                if current_conflicts != last_conflicts:
-                    notify = True
-                # else notify if more than 15 minutes have passed.
-                elif now_ts - last_ts > 15 * 60:
-                    notify = True
-            
-            # notify user about conflict
-            if notify and current_conflicts:
-                user = self.bot.get_user(user_id)
-                if not user:
+            if conflict_entries:
+                new_conflict_message = "⚠️ **Scheduling Conflict Detected!** ⚠️\nYou have overlapping meetings:\n" + "\n".join(conflict_entries)
+                now_ts = datetime.now().timestamp()
+
+                # notify if haven't, message has changed, or its been over 15 min
+                if (
+                    user_id not in self.notified_conflicts or
+                    self.notified_conflicts[user_id][1] != new_conflict_message or
+                    now_ts - self.notified_conflicts[user_id][0] > 15 * 60
+                ):
+                    user = self.bot.get_user(user_id)
+                    if not user:
+                        try:
+                            user = await self.bot.fetch_user(user_id)
+                        except Exception as e:
+                            print(f"Could not fetch user {user_id}: {e}")
+                            continue
                     try:
-                        user = await self.bot.fetch_user(user_id)
-                    except Exception as e:
-                        print(f"Could not fetch user {user_id}: {e}")
-                        continue
-                if user:
-                    message = "⚠️ **Scheduling Conflict Detected!** ⚠️\n"
-                    message += "You have overlapping meetings:\n"
-                    for conflict in current_conflicts:
-                        # get meeting details for each meeting
-                        m1 = next((m for m in meetings if m["meeting_id"] == conflict[0]), None)
-                        m2 = next((m for m in meetings if m["meeting_id"] == conflict[1]), None)
-                        if m1 and m2:
-                            message += (f"• Meeting **{m1['name']}** starts at {m1['start_time'].strftime('%m-%d-%Y %I:%M %p')} and ends at {m1['end_time'].strftime('%I:%M %p')}\n"
-                                f"• Meeting **{m2['name']}** starts at {m2['start_time'].strftime('%m-%d-%Y %I:%M %p')} and ends at {m2['end_time'].strftime('%I:%M %p')}\n")
-                    try:
-                        await user.send(message)
-                        self.notified_conflicts[user_id] = (now_ts, current_conflicts)
+                        await user.send(new_conflict_message)
+                        self.notified_conflicts[user_id] = (now_ts, new_conflict_message)
                     except Exception as e:
                         print(f"Failed to send conflict notification to user {user_id}: {e}")
+            else:
+                # no conflicts
+                self.notified_conflicts.pop(user_id, None)
     
     @check_conflicts_loop.before_loop
     async def before_check_conflicts(self):
