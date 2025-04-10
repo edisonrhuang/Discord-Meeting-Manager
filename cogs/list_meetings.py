@@ -10,13 +10,82 @@ GUILD_ID = discord.Object(id=(os.getenv("GUILD_ID")))
 DATABASE_PATH = "database.db"
 
 
+class SortMeetingsView(discord.ui.View):
+    """
+    A View with buttons to re-sort the meeting list.
+
+    This view stores the meetings and the embed title.
+    Each button's callback sorts the meeting list based on a specific criterion
+    (date/time, title, or ID) and toggles between ascending and descending order.
+    It then updates the original message's embed.
+    """
+
+    def __init__(self, meetings, embed_title):
+        super().__init__(timeout=None)
+        self.meetings = meetings
+        self.embed_title = embed_title
+
+        # Store sorting order per criterion: True means ascending; False means descending.
+        self.sort_orders = {"date": False, "title": True, "id": True}
+
+    def build_embed(self) -> discord.Embed:
+
+        description = "These are the meetings you are opted into for this server.\nThe buttons below will change the order in which the meetings are sorted.\n\n"
+
+        meeting_list_str = ""
+        for meeting in self.meetings:
+            if meeting["dt"]:
+                # Format the datetime as a Discord timestamp.
+                timestamp = f"<t:{int(meeting['dt'].timestamp())}:F>"
+            else:
+                timestamp = meeting["date_time_str"]
+            meeting_list_str += f"**{meeting['name']}** (ID: {meeting['id']}) - {timestamp}\n" f"Description: {meeting['description']}\n\n"
+
+        full_description = description + meeting_list_str
+        embed = discord.Embed(
+            title=self.embed_title,
+            description=full_description,
+            color=discord.Color.blue(),
+        )
+        return embed
+
+    @discord.ui.button(label="Sort by Date/Time", style=discord.ButtonStyle.primary)
+    async def sort_by_date(self, interaction: discord.Interaction, button: discord.ui.Button):
+        ascending = self.sort_orders["date"]
+
+        # If ascending is True, sort ascending; if False, sort descending.
+        self.meetings.sort(key=lambda m: m["dt"] if m["dt"] is not None else datetime.max, reverse=not ascending)
+
+        # Toggle sort order for next click.
+        self.sort_orders["date"] = not ascending
+        new_embed = self.build_embed()
+        await interaction.response.edit_message(embed=new_embed, view=self)
+
+    @discord.ui.button(label="Sort by Title", style=discord.ButtonStyle.primary)
+    async def sort_by_title(self, interaction: discord.Interaction, button: discord.ui.Button):
+        ascending = self.sort_orders["title"]
+        self.meetings.sort(key=lambda m: m["name"].lower(), reverse=not ascending)
+        self.sort_orders["title"] = not ascending
+        new_embed = self.build_embed()
+
+        await interaction.response.edit_message(embed=new_embed, view=self)
+
+    @discord.ui.button(label="Sort by ID", style=discord.ButtonStyle.primary)
+    async def sort_by_id(self, interaction: discord.Interaction, button: discord.ui.Button):
+        ascending = self.sort_orders["id"]
+        self.meetings.sort(key=lambda m: m["id"], reverse=not ascending)
+        self.sort_orders["id"] = not ascending
+        new_embed = self.build_embed()
+
+        await interaction.response.edit_message(embed=new_embed, view=self)
+
+
 class ListMeetingsCog(commands.Cog):
     """
-    Cog to list all meetings that a user is opted into on Discord.
+    Cog to list all scheduled meetings that a user is opted into on Discord.
 
-    This command fetches all scheduled meetings (status = 'scheduled') from the database
-    in which the user is registered, sorts them by their scheduled date/time, and displays
-    them in a single embed.
+    This command fetches the user's meetings, sorts them (default by date/time),
+    and sends an embed that can be re-sorted interactively using buttons.
     """
 
     def __init__(self, bot: commands.Bot):
@@ -77,25 +146,14 @@ class ListMeetingsCog(commands.Cog):
                 }
             )
 
-        # Sort meetings based on datetime (unknown datetime values will appear last).
+        # Default sort: by date/time.
         meetings.sort(key=lambda m: m["dt"] if m["dt"] is not None else datetime.max)
 
-        meeting_list_str = ""
-        for meeting in meetings:
-            if meeting["dt"]:
-                # Use Discord's timestamp format for nicer display.
-                timestamp = f"<t:{int(meeting['dt'].timestamp())}:F>"
-            else:
-                timestamp = meeting["date_time_str"]
-            meeting_list_str += f"**{meeting['name']}** (ID: {meeting['id']}) - {timestamp}\n" f"Description: {meeting['description']}\n\n"
+        # Create a view with sorting buttons.
+        view = SortMeetingsView(meetings, embed_title)
+        embed = view.build_embed()
 
-        embed = discord.Embed(
-            title=embed_title,
-            description=meeting_list_str,
-            color=discord.Color.blue(),
-        )
-
-        await interaction.response.send_message(embed=embed, ephemeral=True)
+        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
 
 async def setup(bot: commands.Bot):
