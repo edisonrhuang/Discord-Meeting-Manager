@@ -31,26 +31,31 @@ class SortMeetingsView(discord.ui.View):
 
     def build_embed(self) -> discord.Embed:
 
-        description = "These are the meetings you are opted into for this server.\nClick a button below to sort, and click again to reverse the order.\n────────────────────────────────────\n"
+        description = (
+            "These are the meetings you are opted into for this server.\n"
+            "Click a button below to sort, and click again to reverse the order.\n"
+            "────────────────────────────────────\n"
+            f"**Total Meetings: {len(self.meetings)}**\n\n"
+        )
 
-        meeting_list_str = ""
-        for meeting in self.meetings:
-            if meeting["dt"]:
-                # Format the datetime as a Discord timestamp.
-                timestamp = f"<t:{int(meeting['dt'].timestamp())}:F>"
-            else:
-                timestamp = meeting["date_time_str"]
-            meeting_list_str += f"**{meeting['name']}** (ID: {meeting['id']}) - {timestamp}\n" f"Description: {meeting['description']}\n\n"
-        meeting_list_str += "────────────────────────────────────\n"
-
-        full_description = description + f"**Total Meetings: {len(self.meetings)}**\n\n" + meeting_list_str
         embed = discord.Embed(
             title=self.embed_title,
-            description=full_description,
+            description=description,
             color=discord.Color.blue(),
         )
 
-        embed.set_footer(text=f"Sorting Setting: {self.current_sort[0]} ({self.current_sort[1]})")
+        # For each meeting, add a separate embed field.
+        for meeting in self.meetings:
+            if meeting["dt"]:
+                timestamp = f"<t:{int(meeting['dt'].timestamp())}:F>"
+            else:
+                timestamp = meeting["date_time_str"]
+
+            field_name = f"{meeting['name']} (ID: {meeting['id']})"
+            field_value = f"{timestamp}\n**Description:** {meeting['description']}"
+            embed.add_field(name=field_name, value=field_value, inline=False)
+
+        embed.set_footer(text=f"\nSorting Setting: {self.current_sort[0]} ({self.current_sort[1]})")
         return embed
 
     @discord.ui.button(label="Sort by Date/Time", style=discord.ButtonStyle.primary)
