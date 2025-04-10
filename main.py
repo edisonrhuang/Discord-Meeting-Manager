@@ -67,7 +67,6 @@ class Client(commands.Bot):
                 created_at TEXT DEFAULT (strftime('%s', 'now')),
                 updated_at TEXT DEFAULT (strftime('%s', 'now')),
                 status TEXT CHECK(status IN ('scheduled', 'cancelled', 'completed')) DEFAULT 'scheduled',
-                platform TEXT DEFAULT 'Discord',  -- Meeting platform,
                 voice_channel_id INTEGER,
                 thread_id INTEGER,
                 role_id INTEGER,
