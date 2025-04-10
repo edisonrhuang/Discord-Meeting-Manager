@@ -14,10 +14,10 @@ class SortMeetingsView(discord.ui.View):
     """
     A View with buttons to re-sort the meeting list.
 
-    This view stores the meetings and the embed title.
-    Each button's callback sorts the meeting list based on a specific criterion
-    (date/time, title, or ID) and toggles between ascending and descending order.
-    It then updates the original message's embed.
+    The view stores the meeting data, the embed title, and the current sort setting.
+    Button callbacks re-sort the meeting list based on a specific criterion (date/time, title, or ID)
+    and toggle between ascending and descending order.
+    The embed is updated with a footer indicating the current sort setting.
     """
 
     def __init__(self, meetings, embed_title):
@@ -27,10 +27,11 @@ class SortMeetingsView(discord.ui.View):
 
         # Store sorting order per criterion: True means ascending; False means descending.
         self.sort_orders = {"date": False, "title": True, "id": True}
+        self.current_sort = ("Date/Time", "Ascending")
 
     def build_embed(self) -> discord.Embed:
 
-        description = "These are the meetings you are opted into for this server.\nThe buttons below will change the order in which the meetings are sorted.\n\n"
+        description = "These are the meetings you are opted into for this server.\nClick a button below to sort, and click again to reverse the order.\n────────────────────────────────────\n"
 
         meeting_list_str = ""
         for meeting in self.meetings:
@@ -40,13 +41,16 @@ class SortMeetingsView(discord.ui.View):
             else:
                 timestamp = meeting["date_time_str"]
             meeting_list_str += f"**{meeting['name']}** (ID: {meeting['id']}) - {timestamp}\n" f"Description: {meeting['description']}\n\n"
+        meeting_list_str += "────────────────────────────────────\n"
 
-        full_description = description + meeting_list_str
+        full_description = description + f"**Total Meetings: {len(self.meetings)}**\n\n" + meeting_list_str
         embed = discord.Embed(
             title=self.embed_title,
             description=full_description,
             color=discord.Color.blue(),
         )
+
+        embed.set_footer(text=f"Sorting Setting: {self.current_sort[0]} ({self.current_sort[1]})")
         return embed
 
     @discord.ui.button(label="Sort by Date/Time", style=discord.ButtonStyle.primary)
@@ -58,6 +62,10 @@ class SortMeetingsView(discord.ui.View):
 
         # Toggle sort order for next click.
         self.sort_orders["date"] = not ascending
+
+        # Update the current sort setting.
+        self.current_sort = ("Date/Time", "Descending" if not ascending else "Ascending")
+
         new_embed = self.build_embed()
         await interaction.response.edit_message(embed=new_embed, view=self)
 
@@ -66,6 +74,7 @@ class SortMeetingsView(discord.ui.View):
         ascending = self.sort_orders["title"]
         self.meetings.sort(key=lambda m: m["name"].lower(), reverse=not ascending)
         self.sort_orders["title"] = not ascending
+        self.current_sort = ("Title", "Descending" if not ascending else "Ascending")
         new_embed = self.build_embed()
 
         await interaction.response.edit_message(embed=new_embed, view=self)
@@ -75,6 +84,7 @@ class SortMeetingsView(discord.ui.View):
         ascending = self.sort_orders["id"]
         self.meetings.sort(key=lambda m: m["id"], reverse=not ascending)
         self.sort_orders["id"] = not ascending
+        self.current_sort = ("ID", "Descending" if not ascending else "Ascending")
         new_embed = self.build_embed()
 
         await interaction.response.edit_message(embed=new_embed, view=self)
@@ -123,7 +133,7 @@ class ListMeetingsCog(commands.Cog):
 
         # Check if the user is opted into any meetings.
         if not rows:
-            return await interaction.response.send_message("You are not opted into any meetings.", ephemeral=True)
+            return await interaction.response.send_message("You are not opted into any meetings.", ephemeral=False)
 
         # Process the returned rows.
         meetings = []
@@ -153,7 +163,7 @@ class ListMeetingsCog(commands.Cog):
         view = SortMeetingsView(meetings, embed_title)
         embed = view.build_embed()
 
-        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+        await interaction.response.send_message(embed=embed, view=view, ephemeral=False)
 
 
 async def setup(bot: commands.Bot):
