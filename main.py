@@ -103,8 +103,6 @@ class Client(commands.Bot):
         if guild:
             emoji_data = [
                 ("discord_logo", "images/discord_logo.png"),
-                # ("google_logo", "images/google_logo.png"),
-                # ("outlook_logo", "images/outlook_logo.png"),
             ]
             for name, path in emoji_data:
                 emoji = await ensure_custom_emoji(guild, name, path)
