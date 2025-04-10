@@ -49,6 +49,7 @@ Creates a new meeting with the specified title, description, date, and time.
 - **[description]**: The meeting's description.
 - **[time]**: The time of the meeting (Supported formats: `HH:MM PM`, `HH:MM pm`, `HH:MM PM`, `HH:MM pm`, or `HH:MM` in 24-hour format).
 - **[date]**: The date of the meeting (Supported formats: `MM/DD/YYYY` or `MM/DD/YY`).
+- **[duration]**: The duration of the meeting (minutes).
 - **(recurrence)**: An optional parameter that sets the meeting's recurrence pattern (Supported recurrence: none, daily, weekly, monthly).
 
 ### `/cancel_meeting [meeting id]`
@@ -64,6 +65,7 @@ Reschedules an existing meeting, updates the meeting's date and time, sends a no
 - **[meeting_id]**: The id of the meeting.
 - **[new_time]**: The new meeting time. Enter "none" to make no changes.
 - **[new_date]**: The new meeting date. Enter "none" to make no changes.
+- **(duration)**: An optional parameter to change the meetings duration.
 
 ### `/change_status [status]`
 

@@ -85,6 +85,7 @@ class RescheduleMeetingCog(commands.Cog):
      - meeting_id: the unique meeting ID in the database
      - new_time: new meeting time (or 'none' to keep current)
      - new_date: new meeting date (or 'none' to keep current)
+     - new_duration: new meeting duration in minutes (or 'none' to keep current)
 
     The command updates the meeting record, sends a notification in the meeting's text channel,
     and posts a new message in the forum thread with a new embed and interactive buttons.
@@ -101,9 +102,10 @@ class RescheduleMeetingCog(commands.Cog):
         meeting_id="The unique meeting ID to reschedule",
         new_time="New meeting time (e.g., 1:00 PM, 13:00) or 'none' to keep current",
         new_date="New meeting date (e.g., M/D/YY, MM/DD/YYYY) or 'none' to keep current",
+        new_duration="New meeting duration (minutes) or 'none' to keep current",
     )
     @app_commands.guilds(GUILD_ID)
-    async def reschedule_meeting(self, interaction: discord.Interaction, meeting_id: int, new_time: str, new_date: str):
+    async def reschedule_meeting(self, interaction: discord.Interaction, meeting_id: int, new_time: str, new_date: str, new_duration: str = "none"):
         guild = interaction.guild
         if guild is None:
             return await interaction.response.send_message("This command can only be used in a server.", ephemeral=True)
@@ -111,7 +113,7 @@ class RescheduleMeetingCog(commands.Cog):
         # Fetch the meeting record by ID.
         async with aiosqlite.connect(DATABASE_PATH) as db:
             async with db.execute(
-                "SELECT id, name, description, date_time, voice_channel_id, thread_id, role_id FROM meetings WHERE id = ?",
+                "SELECT id, name, description, date_time, duration, voice_channel_id, thread_id, role_id FROM meetings WHERE id = ?",
                 (meeting_id,),
             ) as cursor:
                 row = await cursor.fetchone()
@@ -119,7 +121,7 @@ class RescheduleMeetingCog(commands.Cog):
         if row is None:
             return await interaction.response.send_message(f"Meeting with id: '{meeting_id}' not found.", ephemeral=True)
 
-        mid, name, description, current_datetime_str, voice_channel_id, thread_id, role_id = row
+        mid, name, description, current_datetime_str, current_duration, voice_channel_id, thread_id, role_id = row
 
         # Parse the current meeting datetime.
         current_dt = datetime.strptime(current_datetime_str, "%Y-%m-%d %H:%M:%S")
@@ -128,13 +130,24 @@ class RescheduleMeetingCog(commands.Cog):
         new_time_val = current_dt.strftime("%H:%M") if new_time.lower() == "none" else parse_time(new_time)
         new_date_val = current_dt.strftime("%Y-%m-%d") if new_date.lower() == "none" else parse_date(new_date)
 
+        # Determine new duration value
+        if new_duration.lower() == "none":
+            new_duration_val = current_duration
+        else:
+            try:
+                new_duration_val = int(new_duration)
+                if new_duration_val <= 0:
+                    return await interaction.response.send_message("Duration must be a positive integer.", ephemeral=True)
+            except ValueError:
+                return await interaction.response.send_message("Invalid duration value provided.", ephemeral=True)
+
         # Construct the new meeting datetime string.
         new_meeting_dt = f"{new_date_val} {new_time_val}:00"
         new_dt = datetime.strptime(new_meeting_dt, "%Y-%m-%d %H:%M:%S")
 
         # Update the meeting record in the database.
         async with aiosqlite.connect(DATABASE_PATH) as db:
-            await db.execute("UPDATE meetings SET date_time = ?, updated_at = strftime('%s','now') WHERE id = ?", (new_meeting_dt, mid))
+            await db.execute( "UPDATE meetings SET date_time = ?, duration = ?, updated_at = strftime('%s','now') WHERE id = ?", (new_meeting_dt, new_duration_val, mid))
             await db.commit()
 
         # Notify participants in the meeting's text channel.
@@ -143,7 +156,8 @@ class RescheduleMeetingCog(commands.Cog):
 
         if text_channel and meeting_role:
             try:
-                notification = f"{meeting_role.mention} **Reschedule Notice:** The meeting '{name}' has been rescheduled to <t:{int(new_dt.timestamp())}:F>."
+                notification = (f"{meeting_role.mention} **Reschedule Notice:** "
+                                f"The meeting '{name}' has been rescheduled to <t:{int(new_dt.timestamp())}:F> with a duration of {new_duration_val} minutes.")
                 await text_channel.send(notification)
             except Exception as e:
                 print(f"Error sending reschedule notification for meeting {name}: {e}")
@@ -153,6 +167,7 @@ class RescheduleMeetingCog(commands.Cog):
 
         new_embed = discord.Embed(title=f"Meeting {name} Rescheduled!", description=f"\nMeeting ID: {mid}\n{description}", color=discord.Color.blue())
         new_embed.add_field(name="Date & Time", value=discord_timestamp, inline=True)
+        new_embed.add_field(name="Duration", value=f"{new_duration_val} minutes", inline=True)
         new_embed.add_field(name="Text Channel", value=text_channel.mention, inline=False)
 
         voice_channel = guild.get_channel(voice_channel_id)
@@ -176,7 +191,7 @@ class RescheduleMeetingCog(commands.Cog):
 
         # Send a confirmation message to the user.
         return await interaction.response.send_message(
-            f"Meeting '{name}' has been rescheduled to {discord_timestamp}. A new update has been posted in the forum.",
+            f"Meeting '{name}' has been rescheduled to {discord_timestamp} with a duration of {new_duration_val} minutes. A new update has been posted in the forum.",
             ephemeral=True,
         )
 
