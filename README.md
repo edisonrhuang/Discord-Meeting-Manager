@@ -8,6 +8,7 @@ This bot was inspired by the meeting functionality of tools like Microsoft Teams
 - Automatically receive reminders 15 minutes prior to a meeting
 - Automatic drag into designated meeting channels
 - User notifications about conflicting meetings
+- Track meeting attendance
 
 ## Bot Setup Guide
 ### Prerequisites
