@@ -38,6 +38,12 @@ class UpcomingMeetingReminder(commands.Cog):
             if meeting_id in self.reminded_meetings:
                 continue
 
+            # calculate the actual remaining time in minutes
+            time_remaining = meeting_time - now
+            minutes_remaining = int(time_remaining.total_seconds() // 60)
+            if minutes_remaining <= 0:
+                continue  # skip if the meeting has already started
+
             guild = self.bot.get_guild(int(self.bot.guilds[0].id))
             if guild is None:
                 print(f"Guild not found for meeting {name}.")
@@ -48,7 +54,8 @@ class UpcomingMeetingReminder(commands.Cog):
 
             if role and thread:
                 try:
-                    await thread.send(f"{role.mention} Reminder: The meeting **{name}** is starting in 15 minutes at <t:{int(meeting_time.timestamp())}:F>.")
+                    await thread.send(f"{role.mention} Reminder: The meeting **{name}** is starting in "
+                    f"{minutes_remaining} minute{'s' if minutes_remaining != 1 else ''} at <t:{int(meeting_time.timestamp())}:F>.")
                     self.reminded_meetings.add(meeting_id)
                 except Exception as e:
                     print(f"Failed to send reminder for meeting {name}: {e}")
