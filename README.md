@@ -78,3 +78,9 @@ Changes your current availability status for future meetings.
 Cleans up the meeting corresponding to the given ID by archiving the text channel and forum post, and deleting the voice channel and role
 
 - **[meeting_id]**: The id of the meeting.
+
+### `/attendance [meeting_id]`
+
+Displays a list of users who opted in to the meeting and users who have joined the meeting voice channel.
+
+- **[meeting_id]**: The id of the meeting.
