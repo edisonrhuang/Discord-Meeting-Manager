@@ -85,3 +85,13 @@ Cleans up the meeting corresponding to the given ID by archiving the text channe
 Displays a list of users who opted in to the meeting and users who have joined the meeting voice channel.
 
 - **[meeting_id]**: The id of the meeting.
+
+### `/list_meetings`
+
+Lists all meetings you are currently opted into on this Discord server.
+
+- Sorted by **Date/Time** by default (soonest meeting first).
+- Includes interactive buttons to change the sorting order:
+  - **Sort by Date/Time** (ascending/descending)
+  - **Sort by Title** (alphabetical A–Z or Z–A)
+  - **Sort by ID** (lowest to highest or highest to lowest)
