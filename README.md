@@ -95,3 +95,9 @@ Lists all meetings you are currently opted into on this Discord server.
   - **Sort by Date/Time** (ascending/descending)
   - **Sort by Title** (alphabetical A–Z or Z–A)
   - **Sort by ID** (lowest to highest or highest to lowest)
+
+ ### `/search_meetings [keyword]`
+
+  Searches all the meetings through keywords be it may the title or the description.
+
+  - **[keyword]**: The keyword the meeting may have.
