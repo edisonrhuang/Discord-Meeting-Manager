@@ -101,3 +101,7 @@ Lists all meetings you are currently opted into on this Discord server.
   Searches all the meetings through keywords be it may the title or the description.
 
   - **[keyword]**: The keyword the meeting may have.
+
+## Demonstration Video
+
+Click here to watch a video demonstration on how to use the core functionalities of the bot: https://www.youtube.com/watch?v=KBCA39-BbQw
