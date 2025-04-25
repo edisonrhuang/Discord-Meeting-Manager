@@ -74,12 +74,24 @@ class CancelMeetingCog(commands.Cog):
         # send message to forum thread
         if thread_channel and isinstance(thread_channel, discord.Thread):
             try:
+                if thread_channel.archived and guild.me.guild_permissions.manage_threads:
+                    try:
+                        await thread_channel.edit(archived=False)
+                    except:
+                        pass
                 if thread_channel.archived:
                     await thread_channel.edit(archived=False)
                 cancellation_message = f"**Cancellation Notice:** This meeting has been cancelled."
                 await thread_channel.send(cancellation_message)
             except Exception as e:
                 print(f"Error sending cancellation message in thread: {e}")
+
+            # Archive the thread so it moves to older posts
+            if guild.me.guild_permissions.manage_threads:
+                try:
+                    await thread_channel.edit(archived=True)
+                except Exception as e:
+                    print(f"Failed to archive thread: {e}")
         else:
             print("Thread channel not found or not a thread.")
 
